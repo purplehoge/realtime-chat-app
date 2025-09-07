@@ -16,7 +16,10 @@
   "routes": [
     {
       "src": "/api/chat",
-      "dest": "/api/chat"
+      "dest": "/api/chat",
+      "headers": {
+        "x-vercel-protection-bypass": "true"
+      }
     },
     {
       "src": "/(.*)",

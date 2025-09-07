@@ -163,7 +163,17 @@ class HttpChatApp {
       }
     } catch (error) {
       console.error('[HttpChatApp] 参加エラー:', error);
-      this.showError('サーバーに接続できませんでした。しばらく待ってから再試行してください。');
+      let errorMessage = 'サーバーに接続できませんでした。';
+      
+      if (error.message.includes('401')) {
+        errorMessage = 'サーバー認証エラーです。しばらく待ってから再試行してください。';
+      } else if (error.message.includes('403')) {
+        errorMessage = 'アクセスが拒否されました。';
+      } else if (error.message.includes('500')) {
+        errorMessage = 'サーバー内部エラーです。';
+      }
+      
+      this.showError(errorMessage);
       this.showScreen('login');
       this.updateConnectionStatus('disconnected', 'オフライン');
     }
