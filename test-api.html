@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Chat API Test</h1>
+    <div id="result"></div>
+    <script>
+        const API_URL = 'https://serverclient-4l3syvwmv-gunzips-projects-6efa0cc8.vercel.app/api/chat';
+        
+        async function testAPI() {
+            try {
+                // GETテスト
+                const response = await fetch(API_URL + '?action=messages');
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h2>GET Test Success</h2>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                // POSTテスト（ユーザー参加）
+                const joinResponse = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'join', user: 'TestUser' })
+                });
+                const joinData = await joinResponse.json();
+                
+                document.getElementById('result').innerHTML += `
+                    <h2>POST Join Test Success</h2>
+                    <pre>${JSON.stringify(joinData, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h2>Test Failed</h2>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>
