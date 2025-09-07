@@ -15,7 +15,7 @@ class HttpChatApp {
     // API設定
     this.apiUrl = window.location.hostname === 'localhost' 
       ? 'http://localhost:3000/api/chat'
-      : '/api/chat';
+      : window.location.origin + '/api/chat';
     
     // UI要素の参照
     this.elements = {
@@ -121,6 +121,8 @@ class HttpChatApp {
     this.showScreen('loading');
     this.updateConnectionStatus('connecting', '接続中...');
     
+    console.log('[HttpChatApp] API接続先:', this.apiUrl);
+    
     try {
       const response = await fetch(this.apiUrl, {
         method: 'POST',
@@ -128,11 +130,16 @@ class HttpChatApp {
         body: JSON.stringify({ action: 'join', user: nickname })
       });
       
+      console.log('[HttpChatApp] API応答ステータス:', response.status);
+      
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorText = await response.text();
+        console.error('[HttpChatApp] API応答エラー:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
       }
       
       const data = await response.json();
+      console.log('[HttpChatApp] API応答データ:', data);
       
       if (data.success) {
         this.currentUser = nickname;
