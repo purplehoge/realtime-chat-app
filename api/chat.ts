@@ -1,4 +1,16 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+// Vercel型定義
+interface VercelRequest {
+  method?: string;
+  body?: any;
+  query?: any;
+}
+
+interface VercelResponse {
+  status: (code: number) => VercelResponse;
+  json: (data: any) => VercelResponse;
+  end: () => void;
+  setHeader: (key: string, value: string) => void;
+}
 
 // メモリ内メッセージストア（本番では外部DB使用推奨）
 let messages: Array<{
@@ -15,36 +27,32 @@ let users: Set<string> = new Set();
  * Socket.IOの代替実装
  */
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS設定
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-vercel-protection-bypass');
-  
-  // Vercel認証保護の無効化
-  res.setHeader('x-vercel-protection-bypass', 'bypass-enabled');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  const { method } = req;
-
   try {
-    switch (method) {
-      case 'POST':
-        return handlePost(req, res);
-      case 'GET':
-        return handleGet(req, res);
-      default:
-        res.status(405).json({ error: 'Method not allowed' });
-        return;
+    // CORS設定
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+
+    const method = req.method || 'GET';
+
+    if (method === 'POST') {
+      return handlePost(req, res);
+    } else if (method === 'GET') {
+      return handleGet(req, res);
+    } else {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('[Chat API] エラー:', error);
-    res.status(500).json({ error: 'Internal server error' });
-    return;
+    console.error('[Chat API] 致命的エラー:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }
 
@@ -52,7 +60,9 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
  * POST: メッセージ送信・ユーザー参加
  */
 function handlePost(req: VercelRequest, res: VercelResponse) {
-  const { action, user, message } = req.body;
+  try {
+    const body = req.body || {};
+    const { action, user, message } = body;
 
   switch (action) {
     case 'join':
@@ -99,17 +109,21 @@ function handlePost(req: VercelRequest, res: VercelResponse) {
       break;
 
     default:
-      res.status(400).json({ error: 'Invalid action' });
-      return;
+      return res.status(400).json({ error: 'Invalid action' });
   }
-  return;
+  } catch (error) {
+    console.error('[Chat API] POST エラー:', error);
+    return res.status(500).json({ error: 'POST request failed' });
+  }
 }
 
 /**
  * GET: メッセージ取得・ユーザー一覧取得
  */
 function handleGet(req: VercelRequest, res: VercelResponse) {
-  const { action, since } = req.query;
+  try {
+    const query = req.query || {};
+    const { action, since } = query;
 
   switch (action) {
     case 'messages':
@@ -131,10 +145,14 @@ function handleGet(req: VercelRequest, res: VercelResponse) {
 
     default:
       // デフォルト: 全データ取得
-      res.status(200).json({
+      return res.status(200).json({
         messages: messages.slice(-20), // 最新20件
         users: Array.from(users),
         serverTime: Date.now()
       });
+  }
+  } catch (error) {
+    console.error('[Chat API] GET エラー:', error);
+    return res.status(500).json({ error: 'GET request failed' });
   }
 }
