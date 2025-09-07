@@ -71,12 +71,11 @@ function handlePost(req: VercelRequest, res: VercelResponse) {
       }
       users.add(user);
       console.log(`[Chat API] ユーザー参加: ${user}`);
-      res.status(200).json({ 
+      return res.status(200).json({ 
         success: true, 
         users: Array.from(users),
         messages: messages.slice(-50) // 最新50件を返す
       });
-      break;
 
     case 'message':
       if (!user || !message || typeof message !== 'string' || message.length > 500) {
@@ -97,16 +96,14 @@ function handlePost(req: VercelRequest, res: VercelResponse) {
       }
       
       console.log(`[Chat API] メッセージ受信: ${user} - ${message}`);
-      res.status(200).json({ success: true, message: newMessage });
-      break;
+      return res.status(200).json({ success: true, message: newMessage });
 
     case 'leave':
       if (user) {
         users.delete(user);
         console.log(`[Chat API] ユーザー退出: ${user}`);
       }
-      res.status(200).json({ success: true });
-      break;
+      return res.status(200).json({ success: true });
 
     default:
       return res.status(400).json({ error: 'Invalid action' });
@@ -129,19 +126,17 @@ function handleGet(req: VercelRequest, res: VercelResponse) {
     case 'messages':
       const sinceTimestamp = since ? parseInt(since as string) : 0;
       const filteredMessages = messages.filter(msg => msg.timestamp > sinceTimestamp);
-      res.status(200).json({
+      return res.status(200).json({
         messages: filteredMessages,
         users: Array.from(users),
         serverTime: Date.now()
       });
-      break;
 
     case 'users':
-      res.status(200).json({
+      return res.status(200).json({
         users: Array.from(users),
         count: users.size
       });
-      break;
 
     default:
       // デフォルト: 全データ取得
