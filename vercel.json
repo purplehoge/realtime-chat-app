@@ -4,9 +4,17 @@
     {
       "src": "public/**/*",
       "use": "@vercel/static"
+    },
+    {
+      "src": "api/socket.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
+    {
+      "src": "/socket.io/(.*)",
+      "dest": "/api/socket"
+    },
     {
       "src": "/(.*)",
       "dest": "/public/$1"

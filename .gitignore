@@ -133,3 +133,4 @@ build/Release
 # Lock files (keeping package-lock.json out intentionally for this project)
 # Uncomment the line below if you want to include package-lock.json
 # !package-lock.json
+.vercel

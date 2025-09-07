@@ -168,10 +168,17 @@ class ChatApp {
     this.updateConnectionStatus('connecting', '接続中...');
     
     try {
-      // Socket.IO接続の作成
-      this.socket = io({
+      // Socket.IO接続の作成（環境に応じた接続先設定）
+      const socketUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000'
+        : window.location.origin;
+      
+      console.log('[ChatApp] Socket.IO接続先:', socketUrl);
+      
+      this.socket = io(socketUrl, {
+        path: '/socket.io/',
         transports: ['websocket', 'polling'],
-        timeout: 5000,
+        timeout: 10000,
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000

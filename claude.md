@@ -343,6 +343,23 @@ move(direction) {
 
 ### Gitリポジトリ管理のベストプラクティス
 
+#### ブランチ命名規約
+**メインブランチ**: `master` または `main` のプロジェクト統一
+- **新規プロジェクト**: GitHubデフォルトの `main` を使用
+- **既存プロジェクト**: 既存の `master` を継続使用可能
+- **変更する場合**: プロジェクト開始時に決定し、チーム全体で統一
+
+**ブランチ運用ルール**
+```bash
+# 新規リポジトリ作成時の推奨手順
+git branch -M main           # mainブランチに統一
+git remote add origin <url>
+git push -u origin main
+
+# 既存プロジェクトはそのまま継続
+git push -u origin master
+```
+
 #### .gitignoreの必須設定
 ```gitignore
 # Development tools - 開発ツール固有ファイル
