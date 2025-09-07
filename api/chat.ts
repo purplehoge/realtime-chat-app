@@ -18,7 +18,11 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-vercel-protection-bypass');
+  
+  // Vercel認証保護の無効化
+  res.setHeader('x-vercel-protection-bypass', 'bypass-enabled');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   
   if (req.method === 'OPTIONS') {
     res.status(200).end();
