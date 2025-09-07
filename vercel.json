@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "public": true,
   "builds": [
     {
       "src": "public/**/*",
@@ -16,14 +17,14 @@
   "routes": [
     {
       "src": "/api/chat",
-      "dest": "/api/chat",
-      "headers": {
-        "x-vercel-protection-bypass": "true"
-      }
+      "dest": "/api/chat"
     },
     {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

@@ -341,6 +341,19 @@ move(direction) {
 - **自動デプロイ**: GitHubプッシュでVercel自動更新
 - **プレビュー**: プルリクエスト毎にプレビューURL生成
 
+#### 開発用Vercelプロジェクト設定
+**デプロイメント保護の無効化手順**
+1. Vercelダッシュボード → プロジェクト選択
+2. Settings → General → Deployment Protection
+3. 「Standard Protection」または「Off」に設定
+4. 「Public」にチェックを入れる
+
+**汎用設定テンプレート**
+- `vercel.development.json`: 開発用設定テンプレート
+- APIエンドポイント認証保護なし
+- CORS設定により外部アクセス許可
+- 長時間実行許可（最大30秒）
+
 ### Gitリポジトリ管理のベストプラクティス
 
 #### ブランチ命名規約
