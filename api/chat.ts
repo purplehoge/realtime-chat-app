@@ -29,7 +29,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { method, body, query } = req;
+  const { method } = req;
 
   try {
     switch (method) {
@@ -44,6 +44,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     console.error('[Chat API] エラー:', error);
     res.status(500).json({ error: 'Internal server error' });
+    return;
   }
 }
 
@@ -99,7 +100,9 @@ function handlePost(req: VercelRequest, res: VercelResponse) {
 
     default:
       res.status(400).json({ error: 'Invalid action' });
+      return;
   }
+  return;
 }
 
 /**
