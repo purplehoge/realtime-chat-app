@@ -5,21 +5,5 @@
     "api/chat.ts": {
       "maxDuration": 30
     }
-  },
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/public/index.html"
-    },
-    {
-      "source": "/js/(.*)",
-      "destination": "/public/js/$1"
-    },
-    {
-      "source": "/css/(.*)",
-      "destination": "/public/css/$1"
-    }
-  ]
+  }
 }
