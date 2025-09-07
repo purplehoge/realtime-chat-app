@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Elements</title>
+</head>
+<body>
+    <h1>Element Debug Test</h1>
+    <div id="results"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = [
+                'loading-screen',
+                'login-screen', 
+                'chat-screen'
+            ];
+            
+            const results = document.getElementById('results');
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                results.innerHTML += `<p>${id}: ${element ? 'Found' : 'NOT FOUND'}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
