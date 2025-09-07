@@ -341,19 +341,6 @@ move(direction) {
 - **自動デプロイ**: GitHubプッシュでVercel自動更新
 - **プレビュー**: プルリクエスト毎にプレビューURL生成
 
-#### 開発用Vercelプロジェクト設定
-**デプロイメント保護の無効化手順**
-1. Vercelダッシュボード → プロジェクト選択
-2. Settings → General → Deployment Protection
-3. 「Standard Protection」または「Off」に設定
-4. 「Public」にチェックを入れる
-
-**汎用設定テンプレート**
-- `vercel.development.json`: 開発用設定テンプレート
-- APIエンドポイント認証保護なし
-- CORS設定により外部アクセス許可
-- 長時間実行許可（最大30秒）
-
 ### Gitリポジトリ管理のベストプラクティス
 
 #### ブランチ命名規約
@@ -458,4 +445,45 @@ cp ./CLAUDE.md "C:/develop/CLAUDE.md"
 期待する出力: 差分説明とテスト観点も含める
 禁止事項: 余計なライブラリ追加 仕様の独断変更
 ```
+
+---
+
+## ルール遵守の徹底
+
+### 必須チェック項目（作業開始前）
+- [ ] `claude.md` を読み直した
+- [ ] 影響範囲を洗い出した
+- [ ] 修正ブランチを作成した
+- [ ] 対応後の確認方法を決めた
+
+### 修正ブランチ運用の強制
+**原則**: すべての修正は修正ブランチで行い、プルリクエスト経由でmasterにマージする
+
+```bash
+# 修正ブランチ作成・切り替え
+git checkout -b fix/issue-description
+
+# 修正作業実施
+# ...
+
+# コミット・プッシュ
+git add .
+git commit -m "fix: 修正内容の説明"
+git push origin fix/issue-description
+
+# プルリクエスト作成
+gh pr create --title "修正タイトル" --body "修正内容の詳細"
+
+# マージ後にブランチ削除
+git checkout master
+git pull origin master
+git branch -d fix/issue-description
+```
+
+### 違反した場合の対応
+1. 作業を一時停止
+2. claude.mdを読み直し
+3. 違反内容を明確化
+4. 必要に応じて作業をやり直し
+5. 今後の再発防止策を検討
 
