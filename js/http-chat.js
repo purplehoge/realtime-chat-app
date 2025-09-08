@@ -138,8 +138,25 @@ class HttpChatApp {
     
     // LocalStorageからデータ取得
     try {
+      console.log('[DEBUG] LocalStorage関数の確認開始');
+      
+      // 関数の存在確認
+      if (typeof this.getUsers !== 'function') {
+        throw new Error('getUsers関数が利用できません');
+      }
+      if (typeof this.saveUsers !== 'function') {
+        throw new Error('saveUsers関数が利用できません'); 
+      }
+      if (typeof this.getMessages !== 'function') {
+        throw new Error('getMessages関数が利用できません');
+      }
+      
+      console.log('[DEBUG] LocalStorage関数の存在確認完了');
+      
       const users = this.getUsers();
       const messages = this.getMessages();
+      
+      console.log('[DEBUG] LocalStorageデータ取得完了:', { users, messages });
       
       // ユーザーを追加
       if (!users.includes(nickname)) {
@@ -174,8 +191,18 @@ class HttpChatApp {
       
       console.log('[StaticChatApp] チャット参加成功:', nickname);
     } catch (error) {
-      console.error('[StaticChatApp] 参加エラー:', error);
-      this.showError('チャットの初期化に失敗しました');
+      console.error('[StaticChatApp] 参加エラー詳細:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      console.error('[StaticChatApp] this オブジェクト確認:', {
+        hasGetUsers: typeof this.getUsers,
+        hasSaveUsers: typeof this.saveUsers, 
+        hasGetMessages: typeof this.getMessages,
+        hasElements: !!this.elements
+      });
+      this.showError(`チャットの初期化に失敗しました: ${error.message}`);
       this.showScreen('login');
       this.updateConnectionStatus('disconnected', 'オフライン');
     }
