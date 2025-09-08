@@ -1,5 +1,5 @@
-// 最小限のchat API実装
-export default function handler(req, res) {
+// 最小限のchat API実装 - CommonJS format
+module.exports = (req, res) => {
   console.log('Chat API called:', req.method);
   
   // CORS設定
