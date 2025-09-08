@@ -122,6 +122,7 @@ class HttpChatApp {
     this.updateConnectionStatus('connecting', '接続中...');
     
     console.log('[HttpChatApp] API接続先:', this.apiUrl);
+    console.log('[HttpChatApp] 送信データ:', { action: 'join', user: nickname });
     
     try {
       const response = await fetch(this.apiUrl, {
