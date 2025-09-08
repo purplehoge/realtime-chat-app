@@ -189,7 +189,7 @@ body {
 
 .input-group input:disabled {
   background-color: var(--gray-100);
-  color: var(--gray-500);
+  color: var(--gray-700);
   cursor: not-allowed;
 }
 
@@ -333,7 +333,7 @@ body {
 .sidebar-header h3 {
   font-size: var(--font-size-lg);
   font-weight: 700;
-  color: var(--gray-100);
+  color: var(--gray-900);
 }
 
 .users-list-container {
@@ -519,7 +519,7 @@ body {
   background: none;
   border: none;
   font-size: 24px;
-  color: var(--gray-400);
+  color: var(--gray-700);
   cursor: pointer;
   padding: 4px;
   line-height: 1;
@@ -776,7 +776,7 @@ body {
 
 .typing-indicator {
   font-style: italic;
-  color: var(--gray-500);
+  color: var(--gray-700);
   padding: 8px 16px;
 }
 
