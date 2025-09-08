@@ -165,7 +165,15 @@ class HttpChatApp {
         console.log('[HttpChatApp] チャット画面に遷移中...');
         this.showScreen('chat');
         this.updateConnectionStatus('connected', 'オンライン');
-        console.log('[HttpChatApp] チャット画面表示完了');
+        
+        // メッセージ入力を有効化
+        if (this.elements.messageInput) {
+          this.elements.messageInput.disabled = false;
+        }
+        if (this.elements.sendBtn) {
+          this.elements.sendBtn.disabled = false;
+        }
+        console.log('[HttpChatApp] チャット画面表示完了・入力フィールド有効化');
         
         // メッセージポーリング開始
         this.startMessagePolling();
