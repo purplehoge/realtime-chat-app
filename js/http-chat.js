@@ -12,6 +12,15 @@ class HttpChatApp {
     this.lastMessageTime = 0;
     this.pollInterval = null;
     
+    // 初期化時にstorage-utils.jsの読み込み確認
+    console.log('[DEBUG] HttpChatApp constructor 初期化開始');
+    console.log('[DEBUG] プロトタイプ確認:', {
+      hasGetUsers: typeof HttpChatApp.prototype.getUsers,
+      hasSaveUsers: typeof HttpChatApp.prototype.saveUsers,
+      hasGetMessages: typeof HttpChatApp.prototype.getMessages,
+      hasAddMessage: typeof HttpChatApp.prototype.addMessage
+    });
+    
     // LocalStorage設定（静的サイト版）
     this.storagePrefix = 'chatApp_';
     this.usersKey = this.storagePrefix + 'users';
@@ -138,8 +147,25 @@ class HttpChatApp {
     
     // LocalStorageからデータ取得
     try {
+      console.log('[DEBUG] LocalStorage関数の確認開始');
+      
+      // 関数の存在確認
+      if (typeof this.getUsers !== 'function') {
+        throw new Error('getUsers関数が利用できません');
+      }
+      if (typeof this.saveUsers !== 'function') {
+        throw new Error('saveUsers関数が利用できません'); 
+      }
+      if (typeof this.getMessages !== 'function') {
+        throw new Error('getMessages関数が利用できません');
+      }
+      
+      console.log('[DEBUG] LocalStorage関数の存在確認完了');
+      
       const users = this.getUsers();
       const messages = this.getMessages();
+      
+      console.log('[DEBUG] LocalStorageデータ取得完了:', { users, messages });
       
       // ユーザーを追加
       if (!users.includes(nickname)) {
@@ -174,8 +200,18 @@ class HttpChatApp {
       
       console.log('[StaticChatApp] チャット参加成功:', nickname);
     } catch (error) {
-      console.error('[StaticChatApp] 参加エラー:', error);
-      this.showError('チャットの初期化に失敗しました');
+      console.error('[StaticChatApp] 参加エラー詳細:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      console.error('[StaticChatApp] this オブジェクト確認:', {
+        hasGetUsers: typeof this.getUsers,
+        hasSaveUsers: typeof this.saveUsers, 
+        hasGetMessages: typeof this.getMessages,
+        hasElements: !!this.elements
+      });
+      this.showError(`チャットの初期化に失敗しました: ${error.message}`);
       this.showScreen('login');
       this.updateConnectionStatus('disconnected', 'オフライン');
     }
@@ -387,9 +423,70 @@ class HttpChatApp {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
+
+  // LocalStorage ユーティリティ関数（storage-utils.js統合版）
+  getUsers() {
+    try {
+      const users = localStorage.getItem(this.usersKey);
+      return users ? JSON.parse(users) : [];
+    } catch (error) {
+      console.error('[Storage] ユーザー取得エラー:', error);
+      return [];
+    }
+  }
+
+  saveUsers(users) {
+    try {
+      localStorage.setItem(this.usersKey, JSON.stringify(users));
+    } catch (error) {
+      console.error('[Storage] ユーザー保存エラー:', error);
+    }
+  }
+
+  getMessages() {
+    try {
+      const messages = localStorage.getItem(this.messagesKey);
+      return messages ? JSON.parse(messages) : [];
+    } catch (error) {
+      console.error('[Storage] メッセージ取得エラー:', error);
+      return [];
+    }
+  }
+
+  saveMessages(messages) {
+    try {
+      // 最新100件まで保持
+      if (messages.length > 100) {
+        messages = messages.slice(-100);
+      }
+      localStorage.setItem(this.messagesKey, JSON.stringify(messages));
+    } catch (error) {
+      console.error('[Storage] メッセージ保存エラー:', error);
+    }
+  }
+
+  addMessage(message) {
+    const messages = this.getMessages();
+    messages.push(message);
+    this.saveMessages(messages);
+    return messages;
+  }
 }
 
 // アプリケーション起動
 document.addEventListener('DOMContentLoaded', () => {
-  window.chatApp = new HttpChatApp();
+  console.log('[DEBUG] DOMContentLoaded イベント発火');
+  console.log('[DEBUG] document.readyState:', document.readyState);
+  console.log('[DEBUG] storage-utils.js 読み込み確認:', {
+    hasPrototypeGetUsers: typeof HttpChatApp.prototype.getUsers,
+    windowLocation: window.location.href,
+    scriptsLoaded: Array.from(document.scripts).map(s => s.src)
+  });
+  
+  try {
+    window.chatApp = new HttpChatApp();
+    console.log('[DEBUG] HttpChatApp インスタンス作成成功');
+  } catch (error) {
+    console.error('[DEBUG] HttpChatApp インスタンス作成失敗:', error);
+  }
 });
