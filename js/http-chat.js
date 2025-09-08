@@ -12,6 +12,15 @@ class HttpChatApp {
     this.lastMessageTime = 0;
     this.pollInterval = null;
     
+    // 初期化時にstorage-utils.jsの読み込み確認
+    console.log('[DEBUG] HttpChatApp constructor 初期化開始');
+    console.log('[DEBUG] プロトタイプ確認:', {
+      hasGetUsers: typeof HttpChatApp.prototype.getUsers,
+      hasSaveUsers: typeof HttpChatApp.prototype.saveUsers,
+      hasGetMessages: typeof HttpChatApp.prototype.getMessages,
+      hasAddMessage: typeof HttpChatApp.prototype.addMessage
+    });
+    
     // LocalStorage設定（静的サイト版）
     this.storagePrefix = 'chatApp_';
     this.usersKey = this.storagePrefix + 'users';
@@ -418,5 +427,18 @@ class HttpChatApp {
 
 // アプリケーション起動
 document.addEventListener('DOMContentLoaded', () => {
-  window.chatApp = new HttpChatApp();
+  console.log('[DEBUG] DOMContentLoaded イベント発火');
+  console.log('[DEBUG] document.readyState:', document.readyState);
+  console.log('[DEBUG] storage-utils.js 読み込み確認:', {
+    hasPrototypeGetUsers: typeof HttpChatApp.prototype.getUsers,
+    windowLocation: window.location.href,
+    scriptsLoaded: Array.from(document.scripts).map(s => s.src)
+  });
+  
+  try {
+    window.chatApp = new HttpChatApp();
+    console.log('[DEBUG] HttpChatApp インスタンス作成成功');
+  } catch (error) {
+    console.error('[DEBUG] HttpChatApp インスタンス作成失敗:', error);
+  }
 });
