@@ -48,7 +48,8 @@ class HttpChatApp {
       
       // 接続状態
       connectionStatus: document.getElementById('connection-status'),
-      connectionStatusText: document.getElementById('status-text')
+      connectionStatusText: document.getElementById('status-text'),
+      statusIndicator: document.getElementById('status-indicator')
     };
     
     // イベントリスナーの設定
@@ -344,10 +345,12 @@ class HttpChatApp {
     console.log('[DEBUG] updateConnectionStatus called:', { status, text });
     const statusElement = this.elements.connectionStatus;
     const textElement = this.elements.connectionStatusText;
+    const indicatorElement = this.elements.statusIndicator;
     
     console.log('[DEBUG] Elements found:', { 
       statusElement: !!statusElement, 
-      textElement: !!textElement 
+      textElement: !!textElement,
+      indicatorElement: !!indicatorElement
     });
     
     if (statusElement) {
@@ -356,11 +359,19 @@ class HttpChatApp {
     } else {
       console.error('[DEBUG] Status element not found!');
     }
+    
     if (textElement) {
       textElement.textContent = text;
       console.log('[DEBUG] Status text updated:', textElement.textContent);
     } else {
       console.error('[DEBUG] Status text element not found!');
+    }
+    
+    if (indicatorElement) {
+      indicatorElement.className = `status-indicator ${status}`;
+      console.log('[DEBUG] Status indicator class updated:', indicatorElement.className);
+    } else {
+      console.error('[DEBUG] Status indicator element not found!');
     }
   }
 
