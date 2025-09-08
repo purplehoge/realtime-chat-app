@@ -61,7 +61,14 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
  */
 function handlePost(req: VercelRequest, res: VercelResponse) {
   try {
-    const body = req.body || {};
+    let body;
+    try {
+      body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    } catch (parseError) {
+      console.error('[Chat API] JSON parse error:', parseError);
+      return res.status(400).json({ error: 'Invalid JSON', details: 'Request body is not valid JSON' });
+    }
+    
     const { action, user, message } = body;
 
   switch (action) {
