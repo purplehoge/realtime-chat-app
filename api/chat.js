@@ -1,9 +1,9 @@
 /**
  * HTTP APIベースのチャット機能
- * Vercel Edge Runtime対応の最小実装
+ * Vercel Node.js Runtime対応の実装
  */
 
-export default function handler(req, res) {
+module.exports = (req, res) => {
   try {
     console.log('[Chat API] Request received:', {
       method: req.method,
