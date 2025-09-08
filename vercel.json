@@ -2,7 +2,7 @@
   "version": 2,
   "buildCommand": "",
   "functions": {
-    "api/chat.ts": {
+    "api/chat.js": {
       "maxDuration": 30
     }
   }
