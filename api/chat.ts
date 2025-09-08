@@ -83,7 +83,7 @@ function handlePost(req: VercelRequest, res: VercelResponse) {
       }
       
       const newMessage = {
-        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         user,
         message,
         timestamp: Date.now()
