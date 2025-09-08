@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接続状態テスト</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status-indicator { width: 10px; height: 10px; border-radius: 50%; background-color: gray; display: inline-block; margin-right: 8px; }
+        .status-indicator.connected { background-color: green; }
+        .status-indicator.connecting { background-color: orange; }
+        .status-indicator.disconnected { background-color: red; }
+        .connection-status { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        input { padding: 8px; margin: 10px 0; width: 200px; }
+        #log { background-color: #f0f0f0; padding: 10px; margin-top: 20px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>接続状態テスト</h1>
+    
+    <input type="text" id="nickname" placeholder="ニックネーム入力" value="テストユーザー">
+    <button onclick="testJoin()">参加テスト</button>
+    
+    <div class="connection-status">
+        <span id="status-indicator" class="status-indicator"></span>
+        <span id="status-text">未接続</span>
+    </div>
+    
+    <div id="log"></div>
+
+    <!-- LocalStorage ユーティリティ関数 -->
+    <script src="./js/storage-utils.js"></script>
+    
+    <script>
+        // HttpChatAppクラスのシンプル版
+        class TestChatApp {
+            constructor() {
+                this.isConnected = false;
+                this.currentUser = null;
+                this.storagePrefix = 'chatApp_';
+                this.usersKey = this.storagePrefix + 'users';
+                this.messagesKey = this.storagePrefix + 'messages';
+                
+                this.elements = {
+                    statusIndicator: document.getElementById('status-indicator'),
+                    statusText: document.getElementById('status-text')
+                };
+                
+                this.log('テストアプリ初期化完了');
+            }
+            
+            log(message) {
+                const logElement = document.getElementById('log');
+                const timestamp = new Date().toLocaleTimeString();
+                logElement.textContent += `[${timestamp}] ${message}\n`;
+            }
+            
+            updateConnectionStatus(status, text) {
+                this.log(`updateConnectionStatus called: status=${status}, text=${text}`);
+                
+                const statusElement = this.elements.statusIndicator;
+                const textElement = this.elements.statusText;
+                
+                if (statusElement) {
+                    statusElement.className = `status-indicator ${status}`;
+                    this.log(`Status indicator class updated: ${statusElement.className}`);
+                } else {
+                    this.log('ERROR: Status indicator element not found!');
+                }
+                
+                if (textElement) {
+                    textElement.textContent = text;
+                    this.log(`Status text updated: ${textElement.textContent}`);
+                } else {
+                    this.log('ERROR: Status text element not found!');
+                }
+            }
+            
+            async joinChat(nickname) {
+                this.log(`joinChat開始: nickname=${nickname}`);
+                
+                if (!nickname) {
+                    this.log('ERROR: ニックネームが空です');
+                    return false;
+                }
+                
+                this.updateConnectionStatus('connecting', '接続中...');
+                
+                try {
+                    const users = this.getUsers();
+                    this.log(`既存ユーザー: ${JSON.stringify(users)}`);
+                    
+                    // ユーザーを追加
+                    if (!users.includes(nickname)) {
+                        users.push(nickname);
+                        this.saveUsers(users);
+                        this.log(`ユーザー追加完了: ${JSON.stringify(users)}`);
+                    }
+                    
+                    this.currentUser = nickname;
+                    this.isConnected = true;
+                    
+                    this.log('接続状態をconnected/オンラインに更新開始');
+                    this.updateConnectionStatus('connected', 'オンライン');
+                    this.log('接続状態更新完了');
+                    
+                    this.log(`チャット参加成功: ${nickname}`);
+                    return true;
+                    
+                } catch (error) {
+                    this.log(`ERROR: ${error.message}`);
+                    this.updateConnectionStatus('disconnected', 'オフライン');
+                    return false;
+                }
+            }
+        }
+        
+        let testApp;
+        
+        window.onload = function() {
+            testApp = new TestChatApp();
+        };
+        
+        function testJoin() {
+            const nickname = document.getElementById('nickname').value;
+            testApp.joinChat(nickname);
+        }
+    </script>
+</body>
+</html>
