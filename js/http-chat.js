@@ -423,6 +423,54 @@ class HttpChatApp {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
+
+  // LocalStorage ユーティリティ関数（storage-utils.js統合版）
+  getUsers() {
+    try {
+      const users = localStorage.getItem(this.usersKey);
+      return users ? JSON.parse(users) : [];
+    } catch (error) {
+      console.error('[Storage] ユーザー取得エラー:', error);
+      return [];
+    }
+  }
+
+  saveUsers(users) {
+    try {
+      localStorage.setItem(this.usersKey, JSON.stringify(users));
+    } catch (error) {
+      console.error('[Storage] ユーザー保存エラー:', error);
+    }
+  }
+
+  getMessages() {
+    try {
+      const messages = localStorage.getItem(this.messagesKey);
+      return messages ? JSON.parse(messages) : [];
+    } catch (error) {
+      console.error('[Storage] メッセージ取得エラー:', error);
+      return [];
+    }
+  }
+
+  saveMessages(messages) {
+    try {
+      // 最新100件まで保持
+      if (messages.length > 100) {
+        messages = messages.slice(-100);
+      }
+      localStorage.setItem(this.messagesKey, JSON.stringify(messages));
+    } catch (error) {
+      console.error('[Storage] メッセージ保存エラー:', error);
+    }
+  }
+
+  addMessage(message) {
+    const messages = this.getMessages();
+    messages.push(message);
+    this.saveMessages(messages);
+    return messages;
+  }
 }
 
 // アプリケーション起動
