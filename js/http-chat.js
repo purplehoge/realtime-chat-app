@@ -12,14 +12,6 @@ class HttpChatApp {
     this.lastMessageTime = 0;
     this.pollInterval = null;
     
-    // 初期化時にstorage-utils.jsの読み込み確認
-    console.log('[DEBUG] HttpChatApp constructor 初期化開始');
-    console.log('[DEBUG] プロトタイプ確認:', {
-      hasGetUsers: typeof HttpChatApp.prototype.getUsers,
-      hasSaveUsers: typeof HttpChatApp.prototype.saveUsers,
-      hasGetMessages: typeof HttpChatApp.prototype.getMessages,
-      hasAddMessage: typeof HttpChatApp.prototype.addMessage
-    });
     
     // LocalStorage設定（静的サイト版）
     this.storagePrefix = 'chatApp_';
@@ -64,9 +56,12 @@ class HttpChatApp {
     // イベントリスナーの設定
     this.setupEventListeners();
     
+    // Storage Event リスナーの設定（タブ間同期用）
+    this.setupStorageEventListener();
+    
     // 初期化
     this.showScreen('login');
-    console.log('[HttpChatApp] HTTP APIベースチャットアプリ初期化完了');
+    console.log('[HttpChatApp] HTTP APIベース（Phase 1.5: 疑似リアルタイム）チャットアプリ初期化完了');
   }
 
   /**
@@ -101,6 +96,69 @@ class HttpChatApp {
         this.elements.messageLength.style.color = '#7f8c8d';
       }
     });
+  }
+
+  /**
+   * Storage Eventリスナーの設定（タブ間同期用）
+   */
+  setupStorageEventListener() {
+    window.addEventListener('storage', (e) => {
+      // 他のタブでLocalStorageが変更された時の処理
+      if (e.key === this.messagesKey) {
+        console.log('[TabSync] 他のタブでメッセージが更新されました');
+        this.syncMessagesFromStorage();
+      } else if (e.key === this.usersKey) {
+        console.log('[TabSync] 他のタブでユーザー一覧が更新されました');
+        this.syncUsersFromStorage();
+      }
+    });
+  }
+
+  /**
+   * 他のタブからのメッセージ同期
+   */
+  syncMessagesFromStorage() {
+    if (!this.isConnected) return;
+    
+    try {
+      const messages = this.getMessages();
+      console.log('[TabSync] メッセージ同期実行:', messages.length, '件');
+      
+      // タイムスタンプでソートして表示順を正しくする
+      messages.sort((a, b) => a.timestamp - b.timestamp);
+      
+      // 現在表示されていないメッセージのみ追加
+      messages.forEach(msg => {
+        if (!document.getElementById(msg.id)) {
+          const messageElement = this.createMessageElement(msg);
+          this.elements.messagesList.appendChild(messageElement);
+          
+          // 最新タイムスタンプ更新
+          if (msg.timestamp > this.lastMessageTime) {
+            this.lastMessageTime = msg.timestamp;
+          }
+        }
+      });
+      
+      this.scrollToBottom();
+    } catch (error) {
+      console.error('[TabSync] メッセージ同期エラー:', error);
+    }
+  }
+
+  /**
+   * 他のタブからのユーザー一覧同期
+   */
+  syncUsersFromStorage() {
+    if (!this.isConnected) return;
+    
+    try {
+      const users = this.getUsers();
+      console.log('[TabSync] ユーザー一覧同期実行:', users);
+      this.updateUsersList(users);
+    } catch (error) {
+      console.error('[TabSync] ユーザー一覧同期エラー:', error);
+    }
   }
 
   /**
@@ -147,30 +205,14 @@ class HttpChatApp {
     
     // LocalStorageからデータ取得
     try {
-      console.log('[DEBUG] LocalStorage関数の確認開始');
-      
-      // 関数の存在確認
-      if (typeof this.getUsers !== 'function') {
-        throw new Error('getUsers関数が利用できません');
-      }
-      if (typeof this.saveUsers !== 'function') {
-        throw new Error('saveUsers関数が利用できません'); 
-      }
-      if (typeof this.getMessages !== 'function') {
-        throw new Error('getMessages関数が利用できません');
-      }
-      
-      console.log('[DEBUG] LocalStorage関数の存在確認完了');
-      
       const users = this.getUsers();
       const messages = this.getMessages();
       
-      console.log('[DEBUG] LocalStorageデータ取得完了:', { users, messages });
-      
-      // ユーザーを追加
+      // ユーザーを追加（重複チェック付き）
       if (!users.includes(nickname)) {
         users.push(nickname);
         this.saveUsers(users);
+        console.log('[TabSync] 新規ユーザー追加:', nickname);
       }
       
       this.currentUser = nickname;
@@ -200,18 +242,8 @@ class HttpChatApp {
       
       console.log('[StaticChatApp] チャット参加成功:', nickname);
     } catch (error) {
-      console.error('[StaticChatApp] 参加エラー詳細:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      console.error('[StaticChatApp] this オブジェクト確認:', {
-        hasGetUsers: typeof this.getUsers,
-        hasSaveUsers: typeof this.saveUsers, 
-        hasGetMessages: typeof this.getMessages,
-        hasElements: !!this.elements
-      });
-      this.showError(`チャットの初期化に失敗しました: ${error.message}`);
+      console.error('[StaticChatApp] 参加エラー:', error);
+      this.showError('チャットの初期化に失敗しました');
       this.showScreen('login');
       this.updateConnectionStatus('disconnected', 'オフライン');
     }
@@ -342,7 +374,7 @@ class HttpChatApp {
         const users = this.getUsers();
         const updatedUsers = users.filter(user => user !== this.currentUser);
         this.saveUsers(updatedUsers);
-        console.log('[StaticChatApp] ユーザー退出:', this.currentUser);
+        console.log('[TabSync] ユーザー退出:', this.currentUser);
       } catch (error) {
         console.error('[StaticChatApp] 退出処理エラー:', error);
       }
@@ -475,18 +507,5 @@ class HttpChatApp {
 
 // アプリケーション起動
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('[DEBUG] DOMContentLoaded イベント発火');
-  console.log('[DEBUG] document.readyState:', document.readyState);
-  console.log('[DEBUG] storage-utils.js 読み込み確認:', {
-    hasPrototypeGetUsers: typeof HttpChatApp.prototype.getUsers,
-    windowLocation: window.location.href,
-    scriptsLoaded: Array.from(document.scripts).map(s => s.src)
-  });
-  
-  try {
-    window.chatApp = new HttpChatApp();
-    console.log('[DEBUG] HttpChatApp インスタンス作成成功');
-  } catch (error) {
-    console.error('[DEBUG] HttpChatApp インスタンス作成失敗:', error);
-  }
+  window.chatApp = new HttpChatApp();
 });
