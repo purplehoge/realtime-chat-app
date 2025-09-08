@@ -1,26 +1,7 @@
-// Vercel型定義
-interface VercelRequest {
-  method?: string;
-  body?: any;
-  query?: any;
-}
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
-interface VercelResponse {
-  status: (code: number) => VercelResponse;
-  json: (data: any) => VercelResponse;
-  end: () => void;
-  setHeader: (key: string, value: string) => void;
-}
-
-// メモリ内メッセージストア（本番では外部DB使用推奨）
-let messages: Array<{
-  id: string;
-  user: string;
-  message: string;
-  timestamp: number;
-}> = [];
-
-let users: Set<string> = new Set();
+// サーバーレス関数では状態を保持しないため、シンプルなレスポンスに変更
+// 実際のプロダクションでは外部DB（Redis、DynamoDB等）を使用
 
 /**
  * HTTP APIベースのチャット機能
@@ -99,24 +80,20 @@ function handlePost(req: VercelRequest, res: VercelResponse) {
   switch (action) {
     case 'join':
       if (!user || typeof user !== 'string' || user.length > 20) {
+        console.log(`[Chat API] 無効なユーザー名: ${user}`);
         return res.status(400).json({ error: 'Invalid user name' });
       }
-      users.add(user);
       console.log(`[Chat API] ユーザー参加: ${user}`);
       return res.status(200).json({ 
         success: true, 
-        users: Array.from(users),
-        messages: messages.slice(-50) // 最新50件を返す
+        users: [user], // サーバーレス環境では状態を保持しない
+        messages: [] // 空の配列を返す
       });
 
     case 'message':
       if (!user || !message || typeof message !== 'string' || message.length > 500) {
+        console.log(`[Chat API] 無効なメッセージ: user=${user}, message=${message?.substring(0, 50)}`);
         return res.status(400).json({ error: 'Invalid message' });
-      }
-      
-      // ユーザーが参加しているかチェック
-      if (!users.has(user)) {
-        return res.status(400).json({ error: 'User not joined' });
       }
       
       const newMessage = {
@@ -126,18 +103,11 @@ function handlePost(req: VercelRequest, res: VercelResponse) {
         timestamp: Date.now()
       };
       
-      messages.push(newMessage);
-      // メッセージ数制限（最新100件まで保持）
-      if (messages.length > 100) {
-        messages = messages.slice(-100);
-      }
-      
       console.log(`[Chat API] メッセージ受信: ${user} - ${message}`);
       return res.status(200).json({ success: true, message: newMessage });
 
     case 'leave':
       if (user) {
-        users.delete(user);
         console.log(`[Chat API] ユーザー退出: ${user}`);
       }
       return res.status(200).json({ success: true });
@@ -166,25 +136,26 @@ function handleGet(req: VercelRequest, res: VercelResponse) {
 
   switch (action) {
     case 'messages':
-      const sinceTimestamp = since ? parseInt(since as string) : 0;
-      const filteredMessages = messages.filter(msg => msg.timestamp > sinceTimestamp);
+      console.log(`[Chat API] メッセージ取得リクエスト: since=${since}`);
       return res.status(200).json({
-        messages: filteredMessages,
-        users: Array.from(users),
+        messages: [], // サーバーレス環境では永続化なし
+        users: [],
         serverTime: Date.now()
       });
 
     case 'users':
+      console.log(`[Chat API] ユーザー一覧取得`);
       return res.status(200).json({
-        users: Array.from(users),
-        count: users.size
+        users: [],
+        count: 0
       });
 
     default:
-      // デフォルト: 全データ取得
+      // デフォルト: 空データ取得
+      console.log(`[Chat API] デフォルトデータ取得`);
       return res.status(200).json({
-        messages: messages.slice(-20), // 最新20件
-        users: Array.from(users),
+        messages: [],
+        users: [],
         serverTime: Date.now()
       });
   }
