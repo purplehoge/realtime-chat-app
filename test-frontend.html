@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Frontend Debug Test</title>
+</head>
+<body>
+    <h1>Frontend API Debug</h1>
+    <div id="debug-info"></div>
+    <input id="nickname-test" type="text" placeholder="テストユーザー名" value="TestUser">
+    <button onclick="testJoinAPI()">参加テスト</button>
+    
+    <script>
+        // API URL設定をテスト
+        const apiUrl = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api/chat'
+            : window.location.origin + '/api/chat';
+            
+        document.getElementById('debug-info').innerHTML = `
+            <p><strong>現在のAPI URL:</strong> ${apiUrl}</p>
+            <p><strong>hostname:</strong> ${window.location.hostname}</p>
+            <p><strong>origin:</strong> ${window.location.origin}</p>
+        `;
+        
+        async function testJoinAPI() {
+            const nickname = document.getElementById('nickname-test').value;
+            const debugDiv = document.getElementById('debug-info');
+            
+            try {
+                debugDiv.innerHTML += '<p>📡 API呼び出し中...</p>';
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'join', user: nickname })
+                });
+                
+                debugDiv.innerHTML += `<p><strong>レスポンス Status:</strong> ${response.status}</p>`;
+                
+                const data = await response.json();
+                debugDiv.innerHTML += `<p><strong>レスポンス Data:</strong> <pre>${JSON.stringify(data, null, 2)}</pre></p>`;
+                
+                if (data.success) {
+                    debugDiv.innerHTML += '<p>✅ 参加成功！</p>';
+                } else {
+                    debugDiv.innerHTML += '<p>❌ 参加失敗</p>';
+                }
+                
+            } catch (error) {
+                debugDiv.innerHTML += `<p><strong>エラー:</strong> ${error.message}</p>`;
+                console.error('API Test Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
