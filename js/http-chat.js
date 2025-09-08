@@ -93,11 +93,14 @@ class HttpChatApp {
    * 画面切り替え
    */
   showScreen(screenName) {
+    console.log('[HttpChatApp] 画面切り替え:', screenName);
     const screens = ['loading', 'login', 'chat'];
     screens.forEach(name => {
       const element = this.elements[`${name}Screen`];
+      const isTarget = name === screenName;
+      console.log(`[HttpChatApp] ${name}Screen: ${element ? 'Found' : 'NOT FOUND'}, display: ${isTarget ? 'flex' : 'none'}`);
       if (element) {
-        element.style.display = name === screenName ? 'flex' : 'none';
+        element.style.display = isTarget ? 'flex' : 'none';
       }
     });
   }
@@ -152,8 +155,10 @@ class HttpChatApp {
         this.updateUsersList(data.users);
         this.displayMessages(data.messages || []);
         
+        console.log('[HttpChatApp] チャット画面に遷移中...');
         this.showScreen('chat');
         this.updateConnectionStatus('connected', 'オンライン');
+        console.log('[HttpChatApp] チャット画面表示完了');
         
         // メッセージポーリング開始
         this.startMessagePolling();
