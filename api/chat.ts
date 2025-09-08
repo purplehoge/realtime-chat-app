@@ -28,6 +28,12 @@ let users: Set<string> = new Set();
  */
 export default function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    console.log('[Chat API] Request received:', {
+      method: req.method,
+      url: req.url,
+      timestamp: new Date().toISOString()
+    });
+
     // CORS設定
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -35,23 +41,28 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     
     if (req.method === 'OPTIONS') {
+      console.log('[Chat API] CORS preflight request handled');
       return res.status(200).end();
     }
 
     const method = req.method || 'GET';
+    console.log('[Chat API] Processing method:', method);
 
     if (method === 'POST') {
       return handlePost(req, res);
     } else if (method === 'GET') {
       return handleGet(req, res);
     } else {
-      return res.status(405).json({ error: 'Method not allowed' });
+      console.log('[Chat API] Method not allowed:', method);
+      return res.status(405).json({ error: 'Method not allowed', method });
     }
   } catch (error) {
     console.error('[Chat API] 致命的エラー:', error);
+    console.error('[Chat API] Stack trace:', error instanceof Error ? error.stack : 'No stack');
     return res.status(500).json({ 
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     });
   }
 }
@@ -61,15 +72,29 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
  */
 function handlePost(req: VercelRequest, res: VercelResponse) {
   try {
+    console.log('[Chat API] POST request body type:', typeof req.body);
+    console.log('[Chat API] POST request body:', req.body);
+
     let body;
     try {
       body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      console.log('[Chat API] Parsed body:', body);
     } catch (parseError) {
       console.error('[Chat API] JSON parse error:', parseError);
-      return res.status(400).json({ error: 'Invalid JSON', details: 'Request body is not valid JSON' });
+      return res.status(400).json({ 
+        error: 'Invalid JSON', 
+        details: 'Request body is not valid JSON',
+        received: typeof req.body === 'string' ? req.body.substring(0, 200) : req.body
+      });
     }
     
     const { action, user, message } = body;
+    console.log('[Chat API] Extracted action:', action, 'user:', user);
+
+    if (!action) {
+      console.error('[Chat API] Missing action in request');
+      return res.status(400).json({ error: 'Missing action', body });
+    }
 
   switch (action) {
     case 'join':
@@ -134,8 +159,10 @@ function handlePost(req: VercelRequest, res: VercelResponse) {
  */
 function handleGet(req: VercelRequest, res: VercelResponse) {
   try {
+    console.log('[Chat API] GET request query:', req.query);
     const query = req.query || {};
     const { action, since } = query;
+    console.log('[Chat API] GET action:', action, 'since:', since);
 
   switch (action) {
     case 'messages':
