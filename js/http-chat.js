@@ -157,7 +157,9 @@ class HttpChatApp {
       
       console.log('[StaticChatApp] チャット画面に遷移中...');
       this.showScreen('chat');
+      console.log('[DEBUG] About to call updateConnectionStatus with connected/オンライン');
       this.updateConnectionStatus('connected', 'オンライン');
+      console.log('[DEBUG] updateConnectionStatus call completed');
       
       // メッセージ入力を有効化
       if (this.elements.messageInput) {
@@ -339,14 +341,26 @@ class HttpChatApp {
    * 接続状態更新
    */
   updateConnectionStatus(status, text) {
+    console.log('[DEBUG] updateConnectionStatus called:', { status, text });
     const statusElement = this.elements.connectionStatus;
     const textElement = this.elements.connectionStatusText;
     
+    console.log('[DEBUG] Elements found:', { 
+      statusElement: !!statusElement, 
+      textElement: !!textElement 
+    });
+    
     if (statusElement) {
       statusElement.className = `connection-status ${status}`;
+      console.log('[DEBUG] Status element class updated:', statusElement.className);
+    } else {
+      console.error('[DEBUG] Status element not found!');
     }
     if (textElement) {
       textElement.textContent = text;
+      console.log('[DEBUG] Status text updated:', textElement.textContent);
+    } else {
+      console.error('[DEBUG] Status text element not found!');
     }
   }
 
