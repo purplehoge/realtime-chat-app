@@ -241,9 +241,14 @@ class HttpChatApp {
       if (!this.isConnected) return;
       
       try {
-        const response = await fetch(`${this.apiUrl}?action=messages&since=${this.lastMessageTime}`);
+        const pollUrl = `${this.apiUrl}?action=messages&since=${this.lastMessageTime}`;
+        console.log('[HttpChatApp] ポーリング URL:', pollUrl);
+        
+        const response = await fetch(pollUrl);
+        console.log('[HttpChatApp] ポーリング応答:', response.status, response.statusText);
         
         if (!response.ok) {
+          console.error('[HttpChatApp] ポーリング失敗:', response.status, response.statusText);
           throw new Error(`HTTP ${response.status}`);
         }
         
