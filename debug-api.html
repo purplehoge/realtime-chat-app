@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>API Debug Test - Detailed</title>
+    <style>
+        body { font-family: monospace; margin: 20px; }
+        .log { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .error { background: #ffe6e6; }
+        .success { background: #e6ffe6; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Vercel API 詳細デバッグ</h1>
+    
+    <div>
+        <label>API URL:</label>
+        <input id="api-url" type="text" value="https://serverclient-4l3syvwmv-gunzips-projects-6efa0cc8.vercel.app/api/chat" style="width: 500px;">
+    </div>
+    
+    <div>
+        <label>ニックネーム:</label>
+        <input id="nickname" type="text" value="DebugUser" placeholder="テストユーザー名">
+    </div>
+    
+    <div>
+        <button onclick="testJoin()">1. JOIN テスト</button>
+        <button onclick="testMessage()">2. MESSAGE テスト</button>
+        <button onclick="testPolling()">3. POLLING テスト</button>
+        <button onclick="testLeave()">4. LEAVE テスト</button>
+        <button onclick="clearLogs()">ログクリア</button>
+    </div>
+    
+    <div id="logs"></div>
+    
+    <script>
+        let currentUser = null;
+        
+        function log(message, type = 'log') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            document.getElementById('logs').appendChild(div);
+            console.log(message);
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+        
+        async function makeRequest(method, data = null) {
+            const apiUrl = document.getElementById('api-url').value;
+            log(`🚀 ${method} Request to: ${apiUrl}`);
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                    log(`📤 Request Body: ${JSON.stringify(data, null, 2)}`);
+                }
+                
+                const response = await fetch(apiUrl, options);
+                
+                log(`📊 Response Status: ${response.status} ${response.statusText}`);
+                log(`📋 Response Headers: ${JSON.stringify(Object.fromEntries(response.headers), null, 2)}`);
+                
+                let responseData;
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    responseData = await response.json();
+                    log(`📥 Response Data: ${JSON.stringify(responseData, null, 2)}`, response.ok ? 'success' : 'error');
+                } else {
+                    responseData = await response.text();
+                    log(`📥 Response Text: ${responseData}`, response.ok ? 'success' : 'error');
+                }
+                
+                return { response, data: responseData };
+                
+            } catch (error) {
+                log(`❌ Request Error: ${error.message}`, 'error');
+                log(`❌ Stack: ${error.stack}`, 'error');
+                throw error;
+            }
+        }
+        
+        async function testJoin() {
+            const nickname = document.getElementById('nickname').value;
+            log(`🔑 JOIN テスト開始 - User: ${nickname}`);
+            
+            try {
+                const result = await makeRequest('POST', {
+                    action: 'join',
+                    user: nickname
+                });
+                
+                if (result.data.success) {
+                    currentUser = nickname;
+                    log(`✅ JOIN 成功 - 現在のユーザー: ${currentUser}`, 'success');
+                } else {
+                    log(`❌ JOIN 失敗`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ JOIN エラー: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testMessage() {
+            if (!currentUser) {
+                log(`⚠️ 先にJOINテストを実行してください`, 'error');
+                return;
+            }
+            
+            const message = `テストメッセージ - ${new Date().toLocaleTimeString()}`;
+            log(`💬 MESSAGE テスト開始 - Message: ${message}`);
+            
+            try {
+                const result = await makeRequest('POST', {
+                    action: 'message',
+                    user: currentUser,
+                    message: message
+                });
+                
+                if (result.data.success) {
+                    log(`✅ MESSAGE 成功`, 'success');
+                } else {
+                    log(`❌ MESSAGE 失敗`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ MESSAGE エラー: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testPolling() {
+            log(`🔄 POLLING テスト開始`);
+            
+            try {
+                const apiUrl = document.getElementById('api-url').value;
+                const pollUrl = `${apiUrl}?action=messages&since=0`;
+                
+                log(`🔄 Poll URL: ${pollUrl}`);
+                
+                const result = await makeRequest('GET');
+                
+                log(`✅ POLLING 完了`, 'success');
+                
+            } catch (error) {
+                log(`❌ POLLING エラー: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testLeave() {
+            if (!currentUser) {
+                log(`⚠️ 先にJOINテストを実行してください`, 'error');
+                return;
+            }
+            
+            log(`🚪 LEAVE テスト開始 - User: ${currentUser}`);
+            
+            try {
+                const result = await makeRequest('POST', {
+                    action: 'leave',
+                    user: currentUser
+                });
+                
+                if (result.data.success) {
+                    log(`✅ LEAVE 成功`, 'success');
+                    currentUser = null;
+                } else {
+                    log(`❌ LEAVE 失敗`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ LEAVE エラー: ${error.message}`, 'error');
+            }
+        }
+        
+        log('🔧 API デバッグツール準備完了');
+    </script>
+</body>
+</html>
