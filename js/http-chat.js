@@ -181,7 +181,7 @@ class HttpChatApp {
   }
 
   /**
-   * メッセージ送信
+   * メッセージ送信（LocalStorage版）
    */
   async sendMessage() {
     const message = this.elements.messageInput.value.trim();
@@ -194,80 +194,40 @@ class HttpChatApp {
     }
     
     try {
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'message', 
-          user: this.currentUser, 
-          message 
-        })
-      });
+      // 新しいメッセージオブジェクトを作成
+      const newMessage = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        user: this.currentUser,
+        message: message,
+        timestamp: Date.now()
+      };
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      // LocalStorageに保存
+      const updatedMessages = this.addMessage(newMessage);
       
-      const data = await response.json();
+      // UI更新
+      this.elements.messageInput.value = '';
+      this.elements.messageLength.textContent = '0/500';
+      this.elements.messageLength.style.color = '#7f8c8d';
       
-      if (data.success) {
-        this.elements.messageInput.value = '';
-        this.elements.messageLength.textContent = '0/500';
-        this.elements.messageLength.style.color = '#7f8c8d';
-        
-        // 送信したメッセージをすぐに表示
-        this.displayMessages([data.message]);
-        this.scrollToBottom();
-        
-        console.log('[HttpChatApp] メッセージ送信成功');
-      }
+      // 送信したメッセージをすぐに表示
+      this.displayMessages([newMessage]);
+      this.scrollToBottom();
+      
+      console.log('[StaticChatApp] メッセージ送信成功:', newMessage);
     } catch (error) {
-      console.error('[HttpChatApp] メッセージ送信エラー:', error);
+      console.error('[StaticChatApp] メッセージ送信エラー:', error);
       this.showError('メッセージの送信に失敗しました');
     }
   }
 
   /**
-   * メッセージポーリング開始
+   * メッセージポーリング開始（LocalStorage版・シンプル化）
    */
   startMessagePolling() {
-    // 既存のポーリングを停止
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-    }
-    
-    // 新しいメッセージをポーリング（3秒間隔）
-    this.pollInterval = setInterval(async () => {
-      if (!this.isConnected) return;
-      
-      try {
-        const pollUrl = `${this.apiUrl}?action=messages&since=${this.lastMessageTime}`;
-        console.log('[HttpChatApp] ポーリング URL:', pollUrl);
-        
-        const response = await fetch(pollUrl);
-        console.log('[HttpChatApp] ポーリング応答:', response.status, response.statusText);
-        
-        if (!response.ok) {
-          console.error('[HttpChatApp] ポーリング失敗:', response.status, response.statusText);
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.messages && data.messages.length > 0) {
-          this.displayMessages(data.messages);
-          this.scrollToBottom();
-        }
-        
-        if (data.users) {
-          this.updateUsersList(data.users);
-        }
-        
-      } catch (error) {
-        console.error('[HttpChatApp] ポーリングエラー:', error);
-        this.updateConnectionStatus('error', '接続エラー');
-      }
-    }, 3000);
+    console.log('[StaticChatApp] LocalStorage版ではポーリング不要');
+    // LocalStorage版では他のユーザーからのメッセージはないため
+    // ポーリング機能は無効化（将来のFirebase対応時に再実装予定）
   }
 
   /**
@@ -336,22 +296,22 @@ class HttpChatApp {
   }
 
   /**
-   * チャット退出
+   * チャット退出（LocalStorage版）
    */
   async leaveChat() {
     if (this.currentUser) {
       try {
-        await fetch(this.apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'leave', user: this.currentUser })
-        });
+        // LocalStorageからユーザーを削除
+        const users = this.getUsers();
+        const updatedUsers = users.filter(user => user !== this.currentUser);
+        this.saveUsers(updatedUsers);
+        console.log('[StaticChatApp] ユーザー退出:', this.currentUser);
       } catch (error) {
-        console.error('[HttpChatApp] 退出通知エラー:', error);
+        console.error('[StaticChatApp] 退出処理エラー:', error);
       }
     }
     
-    // ポーリング停止
+    // ポーリング停止（LocalStorage版では不要だが念のため）
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
       this.pollInterval = null;
@@ -372,7 +332,7 @@ class HttpChatApp {
     this.showScreen('login');
     this.updateConnectionStatus('disconnected', 'オフライン');
     
-    console.log('[HttpChatApp] チャット退出完了');
+    console.log('[StaticChatApp] チャット退出完了');
   }
 
   /**
