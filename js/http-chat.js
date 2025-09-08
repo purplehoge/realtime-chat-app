@@ -12,10 +12,14 @@ class HttpChatApp {
     this.lastMessageTime = 0;
     this.pollInterval = null;
     
-    // API設定
-    this.apiUrl = window.location.hostname === 'localhost' 
-      ? 'http://localhost:3000/api/chat'
-      : window.location.origin + '/api/chat';
+    // LocalStorage設定（静的サイト版）
+    this.storagePrefix = 'chatApp_';
+    this.usersKey = this.storagePrefix + 'users';
+    this.messagesKey = this.storagePrefix + 'messages';
+    
+    // 擬似リアルタイム更新
+    this.pollInterval = null;
+    this.lastUpdate = 0;
     
     // UI要素の参照
     this.elements = {
@@ -113,7 +117,7 @@ class HttpChatApp {
   }
 
   /**
-   * チャット参加
+   * チャット参加（LocalStorage版）
    */
   async joinChat() {
     const nickname = this.elements.nicknameInput.value.trim();
@@ -131,70 +135,46 @@ class HttpChatApp {
     this.showScreen('loading');
     this.updateConnectionStatus('connecting', '接続中...');
     
-    console.log('[HttpChatApp] API接続先:', this.apiUrl);
-    console.log('[HttpChatApp] 送信データ:', { action: 'join', user: nickname });
-    
+    // LocalStorageからデータ取得
     try {
-      const response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'join', user: nickname })
-      });
+      const users = this.getUsers();
+      const messages = this.getMessages();
       
-      console.log('[HttpChatApp] API応答ステータス:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[HttpChatApp] API応答エラー:', response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+      // ユーザーを追加
+      if (!users.includes(nickname)) {
+        users.push(nickname);
+        this.saveUsers(users);
       }
       
-      const data = await response.json();
-      console.log('[HttpChatApp] API応答データ:', data);
+      this.currentUser = nickname;
+      this.isConnected = true;
+      this.lastMessageTime = Date.now();
       
-      if (data.success) {
-        this.currentUser = nickname;
-        this.isConnected = true;
-        this.lastMessageTime = Date.now();
-        
-        // UI更新
-        this.elements.currentUserName.textContent = nickname;
-        this.updateUsersList(data.users);
-        this.displayMessages(data.messages || []);
-        
-        console.log('[HttpChatApp] チャット画面に遷移中...');
-        this.showScreen('chat');
-        this.updateConnectionStatus('connected', 'オンライン');
-        
-        // メッセージ入力を有効化
-        if (this.elements.messageInput) {
-          this.elements.messageInput.disabled = false;
-        }
-        if (this.elements.sendBtn) {
-          this.elements.sendBtn.disabled = false;
-        }
-        console.log('[HttpChatApp] チャット画面表示完了・入力フィールド有効化');
-        
-        // メッセージポーリング開始
-        this.startMessagePolling();
-        
-        console.log('[HttpChatApp] チャット参加成功:', nickname);
-      } else {
-        throw new Error('参加に失敗しました');
+      // UI更新
+      this.elements.currentUserName.textContent = nickname;
+      this.updateUsersList(users);
+      this.displayMessages(messages);
+      
+      console.log('[StaticChatApp] チャット画面に遷移中...');
+      this.showScreen('chat');
+      this.updateConnectionStatus('connected', 'オンライン');
+      
+      // メッセージ入力を有効化
+      if (this.elements.messageInput) {
+        this.elements.messageInput.disabled = false;
       }
+      if (this.elements.sendBtn) {
+        this.elements.sendBtn.disabled = false;
+      }
+      console.log('[StaticChatApp] チャット画面表示完了・入力フィールド有効化');
+      
+      // 擬似リアルタイム更新開始
+      this.startMessagePolling();
+      
+      console.log('[StaticChatApp] チャット参加成功:', nickname);
     } catch (error) {
-      console.error('[HttpChatApp] 参加エラー:', error);
-      let errorMessage = 'サーバーに接続できませんでした。';
-      
-      if (error.message.includes('401')) {
-        errorMessage = 'サーバー認証エラーです。しばらく待ってから再試行してください。';
-      } else if (error.message.includes('403')) {
-        errorMessage = 'アクセスが拒否されました。';
-      } else if (error.message.includes('500')) {
-        errorMessage = 'サーバー内部エラーです。';
-      }
-      
-      this.showError(errorMessage);
+      console.error('[StaticChatApp] 参加エラー:', error);
+      this.showError('チャットの初期化に失敗しました');
       this.showScreen('login');
       this.updateConnectionStatus('disconnected', 'オフライン');
     }
