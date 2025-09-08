@@ -44,7 +44,7 @@ class HttpChatApp {
       
       // 接続状態
       connectionStatus: document.getElementById('connection-status'),
-      connectionStatusText: document.getElementById('connection-status-text')
+      connectionStatusText: document.getElementById('status-text')
     };
     
     // イベントリスナーの設定
@@ -377,8 +377,12 @@ class HttpChatApp {
     const statusElement = this.elements.connectionStatus;
     const textElement = this.elements.connectionStatusText;
     
-    statusElement.className = `connection-status ${status}`;
-    textElement.textContent = text;
+    if (statusElement) {
+      statusElement.className = `connection-status ${status}`;
+    }
+    if (textElement) {
+      textElement.textContent = text;
+    }
   }
 
   /**
