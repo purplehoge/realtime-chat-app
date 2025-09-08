@@ -169,17 +169,9 @@
 
     <!-- サービスワーカー登録（PWA対応・オフライン機能） -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker 登録成功:', registration);
-                    })
-                    .catch(error => {
-                        console.log('ServiceWorker 登録失敗:', error);
-                    });
-            });
-        }
+        // ServiceWorkerは後の開発段階で実装予定
+        // 現在は基本チャット機能を優先
+        console.log('ServiceWorker: 未実装（基本チャット機能を優先）');
     </script>
 </body>
 </html>
