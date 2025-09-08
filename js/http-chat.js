@@ -98,9 +98,16 @@ class HttpChatApp {
     screens.forEach(name => {
       const element = this.elements[`${name}Screen`];
       const isTarget = name === screenName;
-      console.log(`[HttpChatApp] ${name}Screen: ${element ? 'Found' : 'NOT FOUND'}, display: ${isTarget ? 'flex' : 'none'}`);
+      console.log(`[HttpChatApp] ${name}Screen: ${element ? 'Found' : 'NOT FOUND'}, target: ${isTarget}`);
       if (element) {
-        element.style.display = isTarget ? 'flex' : 'none';
+        // CSSのhiddenクラスと競合するため、クラス操作で制御
+        if (isTarget) {
+          element.classList.remove('hidden');
+          element.style.display = 'flex';
+        } else {
+          element.classList.add('hidden');
+          element.style.display = 'none';
+        }
       }
     });
   }
