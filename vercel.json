@@ -1,9 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "",
   "functions": {
-    "api/chat.js": {
-      "maxDuration": 30
-    }
+    "api/hello.js": { "maxDuration": 10 },
+    "api/chat-minimal.js": { "maxDuration": 10 },
+    "api/chat.js": { "maxDuration": 10 }
   }
 }
