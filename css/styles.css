@@ -628,6 +628,38 @@ body {
   background: var(--gray-400);
 }
 
+/* 状態クリアボタン */
+.clear-state-button {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.clear-state-button:hover {
+  background: linear-gradient(135deg, #c0392b, #a93226);
+  transform: translateY(-1px);
+}
+
+.clear-state-button:active {
+  transform: translateY(0);
+}
+
+.clear-state-button:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
   :root {

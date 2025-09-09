@@ -507,5 +507,23 @@ class HttpChatApp {
 
 // アプリケーション起動
 document.addEventListener('DOMContentLoaded', () => {
-  window.chatApp = new HttpChatApp();
+  // StateManagerが利用可能かチェック
+  if (typeof StateManager !== 'undefined') {
+    console.log('[App] StateManager統合モードで起動');
+    
+    // StateManagerで初期化チェック
+    StateManager.initializeApp();
+    
+    // 明示的に新規セッション開始する場合のみHttpChatAppを開始
+    setTimeout(() => {
+      window.chatApp = new HttpChatApp();
+      
+      // 状態クリアボタンを追加
+      StateManager.addClearStateButton();
+    }, 100);
+    
+  } else {
+    console.log('[App] 従来モードで起動');
+    window.chatApp = new HttpChatApp();
+  }
 });
