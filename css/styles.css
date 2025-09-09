@@ -150,7 +150,7 @@ body {
 .login-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: 700;
-  color: var(--gray-900);
+  color: #1a202c;
   margin-bottom: 8px;
 }
 
@@ -189,7 +189,7 @@ body {
 
 .input-group input:disabled {
   background-color: var(--gray-100);
-  color: var(--gray-700);
+  color: #4a5568;
   cursor: not-allowed;
 }
 
@@ -290,7 +290,7 @@ body {
 .header-content h1 {
   font-size: var(--font-size-xl);
   font-weight: 600;
-  color: var(--gray-800);
+  color: #1a202c;
 }
 
 .user-info {
@@ -512,14 +512,14 @@ body {
 .dialog-header h3 {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  color: var(--gray-900);
+  color: #1a202c;
 }
 
 .dialog-close {
   background: none;
   border: none;
   font-size: 24px;
-  color: var(--gray-700);
+  color: #4a5568;
   cursor: pointer;
   padding: 4px;
   line-height: 1;
@@ -531,7 +531,7 @@ body {
 
 .dialog-content {
   padding: 20px 24px;
-  color: var(--gray-900);
+  color: #1a202c;
   line-height: 1.6;
 }
 
@@ -777,7 +777,7 @@ body {
 
 .typing-indicator {
   font-style: italic;
-  color: var(--gray-700);
+  color: #4a5568;
   padding: 8px 16px;
 }
 
