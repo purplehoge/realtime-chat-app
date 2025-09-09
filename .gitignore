@@ -102,6 +102,9 @@ playwright-report/
 # Claude Code specific
 .claude/
 
+# MCP servers (not needed for this project)
+docker-mcp/
+
 # Local development database
 *.sqlite
 *.db
